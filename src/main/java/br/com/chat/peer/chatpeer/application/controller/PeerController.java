@@ -5,6 +5,9 @@ package br.com.chat.peer.chatpeer.application.controller;
 import br.com.chat.peer.chatpeer.application.domain.PeerNode;
 import br.com.chat.peer.chatpeer.application.service.PeerServiceImp;
 import br.com.chat.peer.chatpeer.application.service.PeerServiceInterface;
+import br.com.chat.peer.chatpeer.model.request.ConnectRequest;
+import br.com.chat.peer.chatpeer.model.request.LoginRequest;
+import br.com.chat.peer.chatpeer.model.request.SendRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,9 +24,7 @@ public class PeerController {
         this.peerService = peerService;
     }
 
-    public record LoginRequest(String name, Integer tcpPort) {}
-    public record ConnectRequest(String host, Integer port) {}
-    public record SendRequest(String text) {}
+
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest req) throws IOException {
