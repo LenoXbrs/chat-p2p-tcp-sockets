@@ -1,7 +1,9 @@
 package br.com.chat.peer.chatpeer.application.domain;
 
 
+import br.com.chat.peer.chatpeer.application.service.DiscoveryService;
 import br.com.chat.peer.chatpeer.model.ChatMessage;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -12,7 +14,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PeerNode {
 
-
+    private final ObjectMapper mapper = new ObjectMapper();
+    private final DiscoveryService discovery = new DiscoveryService();
 
     private final AtomicBoolean running = new AtomicBoolean(false);
 
@@ -49,10 +52,10 @@ public class PeerNode {
         if (!running.get()) return;
         running.set(false);
 
-        // fecha serverSocket (desbloqueia accept)
+
         try { serverSocket.close(); } catch (IOException ignored) {}
 
-        // fecha conexões ativas
+
         for (PeerConnection c : connections.values()) {
             try { c.send("BYE|" + userName); } catch (Exception ignored) {}
             c.close();
@@ -160,6 +163,18 @@ public class PeerNode {
                     System.out.println(from + ": " + text);
                 }
             }
+
+            case "PRIV" -> {
+                if (parts.length >= 4) {
+                    long ts = safeParseLong(parts[1]);
+                    String from = parts[2];
+                    String text = parts[3];
+
+                    history.add(new ChatMessage(ts, from, "[priv] " + text, false));
+                    System.out.println("[priv] " + from + ": " + text);
+                }
+            }
+
             case "BYE" -> {
                 System.out.println("[peer] " + conn.getRemoteName() + " saiu");
                 connections.remove(conn.id());
@@ -196,7 +211,34 @@ public class PeerNode {
         }
     }
 
+    /*
+    id: endereçoip + porta
+    text:mensagem
+     */
+    public boolean privateMessage(String id, String text) {
+        if (!running.get()) throw new IllegalStateException("Peer não iniciado. Faça /login primeiro.");
+
+        PeerConnection p = connections.get(id);
+        if (p == null) return false;
+
+        long ts = System.currentTimeMillis();
+        history.add(new ChatMessage(ts, userName, "[priv->" + id + "] " + text, true));
+
+        String line = "PRIV|" + ts + "|" + userName + "|" + text;
+
+        try {
+            p.send(line);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
 
 }
+
+
+
+
+
 
