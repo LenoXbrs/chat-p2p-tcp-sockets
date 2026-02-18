@@ -13,6 +13,6 @@ public interface PeerServiceInterface {
     void connect(String host, int port) throws IOException;
 
     void send(String text);
-
+    boolean   privateMessage(  String peerId, String text);
     void logout();
 }

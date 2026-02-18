@@ -3,6 +3,7 @@ package br.com.chat.peer.chatpeer.application.domain;
 
 import br.com.chat.peer.chatpeer.application.service.DiscoveryService;
 import br.com.chat.peer.chatpeer.model.ChatMessage;
+import br.com.chat.peer.chatpeer.model.DiscoveredPeer;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.*;
@@ -42,6 +43,11 @@ public class PeerNode {
 
         this.tcpPort = serverSocket.getLocalPort();
         running.set(true);
+        try {
+            discovery.start(userName, tcpPort);
+        } catch (Exception e) {
+            System.out.println("[discovery] falhou: " + e.getMessage());
+        }
 
         new Thread(this::acceptLoop, "accept-loop").start();
 
@@ -62,6 +68,7 @@ public class PeerNode {
         }
         history.clear();
         connections.clear();
+        discovery.stop();
 
         System.out.println("[peer] parado");
     }
@@ -80,6 +87,9 @@ public class PeerNode {
     public int connectionsCount() {
 
         return connections.size();
+    }
+    public java.util.Collection<DiscoveredPeer> discoveredPeers() {
+        return discovery.listPeers();
     }
 
     public List<ChatMessage> getHistorySnapshot() {

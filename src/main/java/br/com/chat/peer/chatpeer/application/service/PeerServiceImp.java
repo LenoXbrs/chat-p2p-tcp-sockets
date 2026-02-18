@@ -19,6 +19,10 @@ public class PeerServiceImp implements PeerServiceInterface {
     public void login(String name, Integer tcpPortOrNull) throws IOException {
         peer.start(name, tcpPortOrNull);
     }
+    @Override
+    public boolean privateMessage(  String peerId, String text){
+        return  peer.privateMessage(peerId, text);
+    }
 
     @Override
     public void connect(String host, int port) throws IOException {

@@ -68,6 +68,24 @@ public class PeerController {
                 "connections", p.connectionsCount()
         ));
     }
+    @GetMapping("/peers")
+    public ResponseEntity<?> peers() {
+        return ResponseEntity.ok(peerService.getPeer().discoveredPeers());
+    }
+
+
+
+    @PostMapping("/pm")
+    public ResponseEntity<?> pm(@RequestBody Map<String, String> body) {
+        String peerId = body.get("peerId");
+        String text = body.get("text");
+        if (peerId == null || peerId.isBlank() || text == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "peerId e text são obrigatórios"));
+        }
+        boolean ok = peerService.privateMessage(peerId.trim(), text);
+        return ResponseEntity.ok(Map.of("ok", ok));
+    }
+
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
