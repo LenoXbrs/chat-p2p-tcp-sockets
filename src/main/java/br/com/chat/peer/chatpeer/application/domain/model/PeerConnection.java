@@ -1,4 +1,4 @@
-package br.com.chat.peer.chatpeer.application.domain;
+package br.com.chat.peer.chatpeer.application.domain.model;
 
 import java.io.BufferedReader;
 import java.io.IOException;

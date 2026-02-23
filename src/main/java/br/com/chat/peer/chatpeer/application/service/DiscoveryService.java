@@ -25,7 +25,7 @@ public class DiscoveryService {
     private final Map<String, DiscoveredPeer> peers = new ConcurrentHashMap<>();
 
     public Collection<DiscoveredPeer> listPeers() {
-        // limpa peers muito antigos (ex: sumiram)
+        // limpa peers muito antigos
         long now = System.currentTimeMillis();
         peers.values().removeIf(p -> now - p.lastSeenMs() > 8000);
         return peers.values();
@@ -39,9 +39,9 @@ public class DiscoveryService {
 
         group = InetAddress.getByName(groupIp);
 
-        // Importantíssimo: reuse address para rodar múltiplas instâncias no mesmo PC
+
         socket = new MulticastSocket(null);
-        socket.setReuseAddress(true);
+        socket.setReuseAddress(true);// multiplas instancias
         socket.bind(new InetSocketAddress(groupPort));
 
         socket.joinGroup(group);

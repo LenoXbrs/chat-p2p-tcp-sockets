@@ -1,4 +1,4 @@
-package br.com.chat.peer.chatpeer.application.domain;
+package br.com.chat.peer.chatpeer.application.domain.model;
 
 
 import br.com.chat.peer.chatpeer.application.service.DiscoveryService;
@@ -12,6 +12,7 @@ import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.net.InetSocketAddress;
 
 public class PeerNode {
 
@@ -43,6 +44,7 @@ public class PeerNode {
 
         this.tcpPort = serverSocket.getLocalPort();
         running.set(true);
+
         try {
             discovery.start(userName, tcpPort);
         } catch (Exception e) {
@@ -121,16 +123,31 @@ public class PeerNode {
     }
 
     public void connectToPeer(String host, int port) throws IOException {
-        if (!running.get()) throw new IllegalStateException("Peer não iniciado. Faça /login primeiro.");
+        if (!running.get()) 
+            throw new IllegalStateException("Peer não iniciado. Faça /login primeiro.");
+        
+        Socket socket = null;
+        try {
+            socket = new Socket();
+            socket.connect(new InetSocketAddress(host, port), 5000); // timeout de 5 segundos
+            
+            PeerConnection conn = new PeerConnection(socket);
+            register(conn);
 
-        Socket socket = new Socket(host, port);
-        PeerConnection conn = new PeerConnection(socket);
-        register(conn);
+            new Thread(() -> readLoop(conn), "conn-" + conn.id()).start();
 
-        new Thread(() -> readLoop(conn), "conn-" + conn.id()).start();
-
-        conn.send("HELLO|" + userName + "|" + tcpPort);
-        System.out.println("[peer] conectado em " + host + ":" + port);
+            conn.send("HELLO|" + userName + "|" + tcpPort);
+            System.out.println("[peer] conectado em " + host + ":" + port);
+            
+        } catch (IOException e) {
+            if (socket != null) {
+                try {
+                    socket.close();
+                } catch (IOException ignored) {}
+            }
+            throw new IOException("Não foi possível conectar ao peer " + host + ":" + port + 
+                ". Verifique se o endereço está correto e se o peer está online.", e);
+        }
     }
 
     private void register(PeerConnection conn) {
@@ -246,9 +263,3 @@ public class PeerNode {
 
 
 }
-
-
-
-
-
-

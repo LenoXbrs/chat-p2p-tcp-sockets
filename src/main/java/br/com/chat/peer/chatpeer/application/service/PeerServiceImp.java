@@ -1,7 +1,7 @@
 package br.com.chat.peer.chatpeer.application.service;
 
 
-import br.com.chat.peer.chatpeer.application.domain.PeerNode;
+import br.com.chat.peer.chatpeer.application.domain.model.PeerNode;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;

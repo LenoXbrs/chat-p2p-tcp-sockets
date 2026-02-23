@@ -2,7 +2,7 @@ package br.com.chat.peer.chatpeer.application.controller;
 
 
 
-import br.com.chat.peer.chatpeer.application.domain.PeerNode;
+import br.com.chat.peer.chatpeer.application.domain.model.PeerNode;
 import br.com.chat.peer.chatpeer.application.service.PeerServiceImp;
 import br.com.chat.peer.chatpeer.application.service.PeerServiceInterface;
 import br.com.chat.peer.chatpeer.model.request.ConnectRequest;

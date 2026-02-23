@@ -1,6 +1,6 @@
 package br.com.chat.peer.chatpeer.application.service;
 
-import br.com.chat.peer.chatpeer.application.domain.PeerNode;
+import br.com.chat.peer.chatpeer.application.domain.model.PeerNode;
 
 import java.io.IOException;
 
