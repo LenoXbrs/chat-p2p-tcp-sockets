@@ -68,10 +68,11 @@ public class PeerController {
                 "connections", p.connectionsCount()
         ));
     }
-    @GetMapping("/peers")
-    public ResponseEntity<?> peers() {
-        return ResponseEntity.ok(peerService.getPeer().discoveredPeers());
-    }
+//    @GetMapping("/peers")
+//    public ResponseEntity<?> peers() {
+//        return ResponseEntity.ok(peerService.getPeer().discoveredPeers());
+//    }
+//
 
 
 

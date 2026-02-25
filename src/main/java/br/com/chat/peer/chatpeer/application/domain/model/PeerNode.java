@@ -2,11 +2,14 @@ package br.com.chat.peer.chatpeer.application.domain.model;
 
 
 import br.com.chat.peer.chatpeer.application.service.DiscoveryService;
+
+import br.com.chat.peer.chatpeer.application.service.LanDiscovery;
 import br.com.chat.peer.chatpeer.model.ChatMessage;
 import br.com.chat.peer.chatpeer.model.DiscoveredPeer;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.*;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
@@ -21,9 +24,9 @@ public class PeerNode {
 
     private final AtomicBoolean running = new AtomicBoolean(false);
 
-    private volatile String userName = "anon";
+    private volatile String userName = "anonimo";
     private volatile int tcpPort = -1;
-
+    private LanDiscovery lanDiscovery;
     private ServerSocket serverSocket;
 
     private final Map<String, PeerConnection> connections = new ConcurrentHashMap<>();
@@ -43,13 +46,34 @@ public class PeerNode {
                 : new ServerSocket(desiredPortOrNull);
 
         this.tcpPort = serverSocket.getLocalPort();
+
         running.set(true);
 
-        try {
-            discovery.start(userName, tcpPort);
-        } catch (Exception e) {
-            System.out.println("[discovery] falhou: " + e.getMessage());
-        }
+        this.lanDiscovery = new LanDiscovery((ip, port) -> {
+            if (!running.get()) return;
+
+            if (isMe(ip, port)) return;
+
+
+            String key = ip + ":" + port;
+            if (connections.containsKey(key)) return;
+
+
+            if (!shouldInitiate(ip, port)) return;
+
+            try {
+                connectToPeer(ip, port);
+            } catch (Exception ignored) {
+            }
+        });
+
+        lanDiscovery.start(userName, tcpPort);
+//        try {
+//
+         //    discovery.start(userName, tcpPort);
+//        } catch (Exception e) {
+//            System.out.println("[discovery] falhou: " + e.getMessage());
+//        }
 
         new Thread(this::acceptLoop, "accept-loop").start();
 
@@ -71,10 +95,30 @@ public class PeerNode {
         history.clear();
         connections.clear();
         discovery.stop();
+        if (lanDiscovery != null) lanDiscovery.stop();
 
         System.out.println("[peer] parado");
     }
+    private boolean isMe(String ip, int port) {
+        if (port != this.tcpPort) return false;
+        try {
+            String myIp = InetAddress.getLocalHost().getHostAddress();
+            return myIp.equals(ip) || "127.0.0.1".equals(ip);
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
+    private boolean shouldInitiate(String otherIp, int otherPort) {
+        String me;
+        try { me = InetAddress.getLocalHost().getHostAddress() + ":" + tcpPort; }
+        catch (Exception e) { me = "127.0.0.1:" + tcpPort; }
+
+        String other = otherIp + ":" + otherPort;
+
+        // quem tiver "menor" inicia; o outro só aceita
+        return me.compareTo(other) < 0;
+    }
     public boolean isRunning() {
         return running.get();
     }
@@ -91,7 +135,7 @@ public class PeerNode {
         return connections.size();
     }
     public java.util.Collection<DiscoveredPeer> discoveredPeers() {
-        return discovery.listPeers();
+        return null;
     }
 
     public List<ChatMessage> getHistorySnapshot() {

@@ -15,7 +15,7 @@ public class DiscoveryService {
 
     private final String groupIp = "230.0.0.1";
     private final int groupPort = 4446;
-
+    private LanDiscovery lanDiscovery;
     private MulticastSocket socket;
     private InetAddress group;
 
